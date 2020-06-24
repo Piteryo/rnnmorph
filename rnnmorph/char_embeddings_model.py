@@ -7,11 +7,11 @@ import copy
 from typing import Tuple
 
 import numpy as np
-from keras.layers import Input, Embedding, Dense, Dropout, Reshape, TimeDistributed
-from keras.models import Model, model_from_yaml
-from keras.optimizers import Adam
-from keras.callbacks import EarlyStopping
-from keras import backend as K
+from tensorflow.keras.layers import Input, Embedding, Dense, Dropout, Reshape, TimeDistributed
+from tensorflow.keras.models import Model, model_from_yaml
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras import backend as K
 
 from rnnmorph.data_preparation.word_vocabulary import WordVocabulary
 

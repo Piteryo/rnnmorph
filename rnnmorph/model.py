@@ -8,11 +8,21 @@ import os
 import numpy as np
 from pymorphy2 import MorphAnalyzer
 from russian_tagsets import converters
-from keras.layers import Input, Embedding, Dense, LSTM, BatchNormalization, Activation, \
+from tensorflow.keras.layers import Input, Embedding, Dense, LSTM, BatchNormalization, Activation, \
     concatenate, Bidirectional, TimeDistributed, Dropout
-from keras.models import Model, model_from_yaml
-from keras.optimizers import Adam
-from keras import backend as K
+from tensorflow.keras.models import Model, model_from_yaml
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras import backend as K
+
+from tensorflow.keras.backend import set_session
+import tensorflow as tf
+
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config=config)
+graph = tf.get_default_graph()
+
+set_session(sess)
 
 from rnnmorph.batch_generator import BatchGenerator
 from rnnmorph.data_preparation.grammeme_vectorizer import GrammemeVectorizer
@@ -90,7 +100,7 @@ class LSTMMorphoAnalysis:
     def load_train(self, config: BuildModelConfig, model_config_path: str=None, model_weights_path: str=None):
         with open(model_config_path, "r", encoding='utf-8') as f:
             if config.use_crf:
-                from keras_contrib.layers import CRF
+                from tensorflow.keras_contrib.layers import CRF
                 custom_objects = {'ReversedLSTM': ReversedLSTM, 'CRF': CRF}
                 self.train_model = model_from_yaml(f.read(), custom_objects=custom_objects)
             else:
@@ -127,7 +137,7 @@ class LSTMMorphoAnalysis:
                   eval_model_weights_path: str) -> None:
         with open(eval_model_config_path, "r", encoding='utf-8') as f:
             if config.use_crf:
-                from keras_contrib.layers import CRF
+                from tensorflow.keras_contrib.layers import CRF
                 custom_objects = {'ReversedLSTM': ReversedLSTM, 'CRF': CRF}
                 self.eval_model = model_from_yaml(f.read(), custom_objects=custom_objects)
             else:
@@ -217,7 +227,7 @@ class LSTMMorphoAnalysis:
         num_of_classes = self.grammeme_vectorizer_output.size() + 1
 
         if config.use_crf:
-            from keras_contrib.layers import CRF
+            from tensorflow.keras_contrib.layers import CRF
             out_layer_name = 'crf'
             crf_layer = CRF(num_of_classes, sparse_target=True, name=out_layer_name)
             outputs.append(crf_layer(layer))
@@ -403,4 +413,6 @@ class LSTMMorphoAnalysis:
             inputs.append(grammemes)
         if build_config.use_chars:
             inputs.append(chars)
-        return self.eval_model.predict(inputs, batch_size=batch_size)
+        with sess.as_default():
+            with graph.as_default() as g:
+                return self.eval_model.predict(inputs, batch_size=batch_size)

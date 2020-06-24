@@ -19,7 +19,6 @@ setup(
         'scipy>=0.18.1',
         'scikit-learn>=0.18.1',
         'tensorflow>=1.1.0',
-        'keras>=2.0.6',
         'pymorphy2>=0.8',
         'russian-tagsets==0.6',
         'tqdm>=4.14.0',
